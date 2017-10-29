@@ -1,3 +1,5 @@
+package ru.spbau.mit
+
 import java.util.*
 
 class PatternFiller(private val k: Int, private val pattern: String,
