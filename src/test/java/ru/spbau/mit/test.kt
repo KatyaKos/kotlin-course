@@ -6,10 +6,10 @@ import org.junit.Test
 class TestSource {
     @Test
     fun sampleTests() {
-        assertEquals("IMPOSSIBLE", PatternFiller(3, "a?c").solve())
-        assertEquals("abba", PatternFiller(2, "a??a").solve())
-        assertEquals("abba", PatternFiller(2, "?b?a").solve())
-        assertEquals("aaa", PatternFiller(1, "a?a").solve())
-        assertEquals("aabaa", PatternFiller(2, "a???a").solve())
+        assertEquals("IMPOSSIBLE", solve(3, "a?c"))
+        assertEquals("abba", solve(2, "a??a"))
+        assertEquals("abba", solve(2, "?b?a"))
+        assertEquals("aaa", solve(1, "a?a"))
+        assertEquals("aabaa", solve(2, "a???a"))
     }
 }
