@@ -77,6 +77,7 @@ abstract class BlockCommand(private val name: String,
     }
 }
 
+@TexMarker
 abstract class ListCommand(private val name: String,
                            private val args: List<String> = listOf(),
                            private vararg val optionalArgs: String
