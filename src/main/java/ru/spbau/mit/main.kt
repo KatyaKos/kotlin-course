@@ -1,14 +1,10 @@
 package ru.spbau.mit
 
-fun getGreeting(): String {
-    val words = mutableListOf<String>()
-    words.add("Hello,")
-    
-    words.add("world!")
+import ru.spbau.mit.elements.Tex
 
-    return words.joinToString(separator = " ")
-}
 
-fun main(args: Array<String>) {
-    println(getGreeting())
+fun start(init: Tex.() -> Unit): Tex {
+    val res = Tex()
+    res.init()
+    return res
 }
