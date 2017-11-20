@@ -1,8 +1,8 @@
-group 'ru.spbau.mit'
+group 'ru.spbau.mit.hw3'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.1.51'
+    ext.kotlin_version = '1.1.4-3'
 
     repositories {
         mavenCentral()
@@ -12,10 +12,7 @@ buildscript {
     }
 }
 
-apply plugin: 'java'
 apply plugin: 'kotlin'
-
-sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
