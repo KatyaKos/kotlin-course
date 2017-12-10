@@ -49,7 +49,13 @@ class TestClass {
         val ast = build(name2)
         assertEquals(ExampleAsts.fibAst, ast)
         interpret(ast)
-        assertEquals("1, 1\n2, 2\n3, 3\n4, 5\n5, 8\n", outContent.toString())
+        assertEquals("""
+                    |1, 1
+                    |2, 2
+                    |3, 3
+                    |4, 5
+                    |5, 8
+                    |""".trimMargin(), outContent.toString())
     }
 
     @Test

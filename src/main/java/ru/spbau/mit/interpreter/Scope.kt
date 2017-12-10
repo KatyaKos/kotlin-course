@@ -1,6 +1,7 @@
 package ru.spbau.mit.interpreter
 
 import ru.spbau.mit.exceptions.ScopeException
+import ru.spbau.mit.exceptions.mustBeNotNull
 
 class Scope(var parent: Scope? = null) {
     private val variables: MutableMap<String, Int> = HashMap()
@@ -8,13 +9,13 @@ class Scope(var parent: Scope? = null) {
 
     fun getVariable(name: String): Int =
             variables.getOrElse(name) {
-                parent?.getVariable(name)
-            } ?: throw ScopeException("Variable $name doesn't exist.")
+                parent.mustBeNotNull().getVariable(name)
+            }
 
     fun getFunction(name: String): InterpreterFunction =
             functions.getOrElse(name) {
-                parent?.getFunction(name)
-            } ?: throw ScopeException("Function $name doesn't exist.")
+                parent.mustBeNotNull().getFunction(name)
+            }
 
     fun initializeVariable(name: String, value: Int = 0) {
         if (name in variables) throw ScopeException("Variable $name is already defined in the scope")
@@ -31,6 +32,6 @@ class Scope(var parent: Scope? = null) {
 
     fun setVariable(name: String, value: Int) {
         if (name in variables) variables.put(name, value)
-        else parent?.setVariable(name, value) ?: throw ScopeException("Variable $name doesn't exist.")
+        else parent.mustBeNotNull().setVariable(name, value)
     }
 }

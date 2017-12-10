@@ -40,9 +40,9 @@ expression
     | Identifier #identifierExpression
     | Literal #literalExpression
     | left = expression operation = ('+' | '-' | '*' | '/' | '%') right = expression #binaryExpression
-    | left = expression operation = ('>' | '<' | '>=' | '<=') right = expression #relationExpression
-    | left = expression operation = ('==' | '!=') right = expression #equalityExpression
-    | left = expression operation = ('&&' | '||') right = expression #orAndExpression
+    | left = expression operation = ('>' | '<' | '>=' | '<=') right = expression #binaryExpression
+    | left = expression operation = ('==' | '!=') right = expression #binaryExpression
+    | left = expression operation = ('&&' | '||') right = expression #binaryExpression
     | '-' expression #unaryMinusExpression
     | '(' expression ')' #expressionWithBraces
     ;

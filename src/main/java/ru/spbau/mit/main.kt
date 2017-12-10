@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import ru.spbau.mit.exceptions.*
 import ru.spbau.mit.interpreter.Ast
+import ru.spbau.mit.interpreter.AstEvaluator
 import ru.spbau.mit.interpreter.Scope
 import ru.spbau.mit.interpreter.Visitor
 import ru.spbau.mit.parser.*
@@ -19,7 +20,7 @@ fun build(file: String): Ast {
 }
 
 fun interpret(ast: Ast) {
-    ast.evaluate(Scope())
+    ast.accept(AstEvaluator(Scope()))
 }
 
 fun main(args: Array<String>) {
