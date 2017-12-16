@@ -2,7 +2,10 @@ package ru.spbau.mit
 
 import ru.spbau.mit.elements.TexException
 import org.junit.Test
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
 import kotlin.test.assertEquals
+import com.google.common.truth.Truth.assertThat
 
 class TestClass {
     @Test
@@ -27,7 +30,7 @@ class TestClass {
         start {  }.toString()
     }
 
-    @Test(expected = TexException::class)
+    @Test(expected = IllegalArgumentException::class)
     fun testClasses() {
         start {
             documentClass("letsplay")
@@ -159,9 +162,9 @@ class TestClass {
                     |    Bring me a dream
                     |    \begin{center}
                     |        bung x
-                    |        \begin{math}
+                    |        $$
                     |            (1+1)*2
-                    |        \end{math}
+                    |        $$
                     |    \end{center}
                     |\end{document}
                     |""".trimMargin(), res)
@@ -239,5 +242,39 @@ class TestClass {
                     |    \end{bringMeADream}
                     |\end{document}
                     |""".trimMargin(), res)
+    }
+
+    @Test
+    fun textToOutputStream() {
+        val bos = ByteArrayOutputStream()
+        val stream = PrintStream(bos)
+        start {
+            documentClass("letsplay")
+            document {
+                +"Hello!"
+                itemize {
+                    item { +"Hey" }
+                    item {
+                        +"Ho"
+                        math { +"1+1" }
+                    }
+                }
+            }
+        }.toOutputStream(stream)
+        assertThat("""
+                    |\documentclass{letsplay}
+                    |\begin{document}
+                    |    Hello!
+                    |    \begin{itemize}
+                    |        \item
+                    |            Hey
+                    |        \item
+                    |            Ho
+                    |            $$
+                    |                1+1
+                    |            $$
+                    |    \end{itemize}
+                    |\end{document}
+                    |""".trimMargin().toByteArray()).isEqualTo(bos.toByteArray())
     }
 }

@@ -1,20 +1,29 @@
 package ru.spbau.mit.elements
 
-class Center : BlockCommand("center", emptyList())
+class Center : BlockCommand("center")
 
-class FlushLeft : BlockCommand("flushleft", emptyList())
+class FlushLeft : BlockCommand("flushleft")
 
-class FlushRight : BlockCommand("flushright", emptyList())
+class FlushRight : BlockCommand("flushright")
 
 class Enumerate(vararg optionalsArgs: String) : ListCommand("enumerate", emptyList(), *optionalsArgs)
 
 class Itemize(vararg optionalsArgs: String) : ListCommand("itemize", emptyList(), *optionalsArgs)
 
-class Math : BlockCommand("math", emptyList())
+class Math : BlockCommand("math") {
+    override fun render(builder: StringBuilder, indent: Int) {
+        builder.makeIndent(indent)
+        builder.append("$$\n");
+        renderCommands(builder, indent + 4)
+        builder.makeIndent(indent)
+        builder.append("$$\n");
+
+    }
+}
 
 class Frame(title: String, vararg optionalsArgs: String) : BlockCommand("frame", listOf(title), *optionalsArgs)
 
-class Item : BlockCommand("item", emptyList()) {
+class Item : BlockCommand("item") {
 
     override fun render(builder: StringBuilder, indent: Int) {
         builder.makeIndent(indent)
@@ -40,7 +49,7 @@ class UsePackage(name: String, vararg optionalArgs: String)
 
 class Document : BlockCommand("document", emptyList())
 
-class Tex : BlockCommand("", emptyList()) {
+class Tex : BlockCommand("") {
 
     private var documentClass: DocumentClass? = null
 
@@ -54,9 +63,7 @@ class Tex : BlockCommand("", emptyList()) {
     }
 
     fun documentClass(name: String, vararg optionalArgs: String) {
-        if (documentClass != null) {
-            throw TexException("Your tex document should contain only one document class.")
-        }
+        require(documentClass == null)
         documentClass = DocumentClass(name, *optionalArgs)
     }
 
