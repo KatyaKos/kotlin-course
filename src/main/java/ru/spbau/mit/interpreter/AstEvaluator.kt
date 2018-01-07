@@ -1,15 +1,20 @@
 package ru.spbau.mit.interpreter
 
 import ru.spbau.mit.exceptions.ParsingException
+import kotlin.coroutines.experimental.suspendCoroutine
 
-class AstEvaluator(scope: Scope): AstVisitor {
+class AstEvaluator(
+        scope: Scope,
+        private val breakpoints: Map<Int, Expression?> = hashMapOf(),
+        private val debugger: Debugger
+): AstVisitor {
     private val scopes: MutableList<Scope> = mutableListOf(scope)
 
-    override fun visit(file: File): Int? {
+    override suspend fun visit(file: File): Int? {
         return visit(file.body)
     }
 
-    override fun visit(block: Block): Int? {
+    override suspend fun visit(block: Block): Int? {
         scopes.add(Scope(scopes.last()))
         val statements = block.statements
         for (statement in statements) {
@@ -22,11 +27,11 @@ class AstEvaluator(scope: Scope): AstVisitor {
         return null
     }
 
-    override fun visit(blockWithBraces: BlockWithBraces): Int? {
+    override suspend fun visit(blockWithBraces: BlockWithBraces): Int? {
         return visit(blockWithBraces.block)
     }
 
-    override fun visit(function: Function): Int? {
+    override suspend fun visit(function: Function): Int? {
         val name = function.name
         val parameters = function.parameters
         val body = function.body
@@ -35,13 +40,14 @@ class AstEvaluator(scope: Scope): AstVisitor {
         return null
     }
 
-    override fun visit(printLn: PrintLn): Int? {
+    override suspend fun visit(printLn: PrintLn): Int? {
         val arguments = printLn.arguments
         print(arguments.map { it.accept(this) }.joinToString(", ") + "\n")
         return null
     }
 
-    override fun visit(variable: Variable): Int? {
+    override suspend fun visit(variable: Variable): Int? {
+        makeBreakpoint(variable.line)
         val name = variable.name
         val expression = variable.expression
         val scope = scopes.last()
@@ -49,7 +55,8 @@ class AstEvaluator(scope: Scope): AstVisitor {
         return null
     }
 
-    override fun visit(functionCallExpression: FunctionCallExpression): Int {
+    override suspend fun visit(functionCallExpression: FunctionCallExpression): Int {
+        makeBreakpoint(functionCallExpression.line)
         val arguments = functionCallExpression.arguments
         val function = scopes.last().getFunction(functionCallExpression.name)
         val scope = Scope(function.scope)
@@ -63,16 +70,16 @@ class AstEvaluator(scope: Scope): AstVisitor {
         return result
     }
 
-    override fun visit(identifierExpression: IdentifierExpression): Int {
+    override suspend fun visit(identifierExpression: IdentifierExpression): Int {
         val name = identifierExpression.name
         return scopes.last().getVariable(name)
     }
 
-    override fun visit(literalExpression: LiteralExpression): Int {
+    override suspend fun visit(literalExpression: LiteralExpression): Int {
         return literalExpression.value
     }
 
-    override fun visit(binaryExpression: BinaryExpression): Int {
+    override suspend fun visit(binaryExpression: BinaryExpression): Int {
         val left = binaryExpression.leftExpr.accept(this)
         val right = binaryExpression.rightExpr.accept(this)
         val operation = binaryExpression.operation
@@ -94,15 +101,16 @@ class AstEvaluator(scope: Scope): AstVisitor {
         }
     }
 
-    override fun visit(unaryMinusExpression: UnaryMinusExpression): Int {
+    override suspend fun visit(unaryMinusExpression: UnaryMinusExpression): Int {
         return -unaryMinusExpression.expression.accept(this)
     }
 
-    override fun visit(expressionWithBraces: ExpressionWithBraces): Int {
+    override suspend fun visit(expressionWithBraces: ExpressionWithBraces): Int {
         return expressionWithBraces.expression.accept(this)
     }
 
-    override fun visit(whileStatement: WhileStatement): Int? {
+    override suspend fun visit(whileStatement: WhileStatement): Int? {
+        makeBreakpoint(whileStatement.line)
         val condition = whileStatement.condition
         val body = whileStatement.body
         var ty = condition.accept(this)
@@ -113,7 +121,8 @@ class AstEvaluator(scope: Scope): AstVisitor {
         return null
     }
 
-    override fun visit(ifStatement: IfStatement): Int? {
+    override suspend fun visit(ifStatement: IfStatement): Int? {
+        makeBreakpoint(ifStatement.line)
         val condition = ifStatement.condition
         val bodyFalse = ifStatement.bodyFalse
         val bodyTrue = ifStatement.bodyTrue
@@ -124,7 +133,8 @@ class AstEvaluator(scope: Scope): AstVisitor {
         }
     }
 
-    override fun visit(assignment: Assignment): Int? {
+    override suspend fun visit(assignment: Assignment): Int? {
+        makeBreakpoint(assignment.line)
         val name = assignment.name
         val expression = assignment.expression
         val scope = scopes.last()
@@ -132,8 +142,16 @@ class AstEvaluator(scope: Scope): AstVisitor {
         return null
     }
 
-    override fun visit(returnStatement: ReturnStatement): Int? {
+    override suspend fun visit(returnStatement: ReturnStatement): Int? {
+        makeBreakpoint(returnStatement.line)
         val expression = returnStatement.expression
         return expression.accept(this)
+    }
+
+    suspend private fun makeBreakpoint(line: Int) {
+        if (!breakpoints.contains(line) || breakpoints[line] != null && breakpoints[line]!!.accept(this) == 0) {
+            return
+        }
+        suspendCoroutine<Unit> { continuation -> debugger.pause(line, Scope(scopes.last()), continuation) }
     }
 }
