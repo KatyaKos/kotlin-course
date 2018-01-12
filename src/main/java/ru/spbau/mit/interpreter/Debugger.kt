@@ -108,11 +108,7 @@ class Debugger(private val out: PrintStream) {
         if (statements.size != 1) {
             throw ParsingException("Provided string is not expression.")
         }
-        val statement = statements.first()
-        if (statement is Expression) {
-            return statement
-        }
-        throw ParsingException("Provided string is not expression.")
+        return statements.first() as? Expression ?: throw ParsingException("Provided string is not expression.")
     }
 
     private fun checkRunning() {
